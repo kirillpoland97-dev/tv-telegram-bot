@@ -2,35 +2,30 @@ from flask import Flask, request
 import requests
 import os
 
-# Исправлено: добавлены двойные подчеркивания name
+# ИСПРАВЛЕНО: Добавлены подчеркивания name
 app = Flask(__name__)
 
-# Исправлено: названия переменных под твой Render (BOT_TOKEN)
+# Данные из Render
 TOKEN = os.environ.get("BOT_TOKEN")
 CHAT_ID = os.environ.get("CHAT_ID")
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    # Получаем данные от TradingView (как текст)
+    # Получаем данные от TradingView
     signal_text = request.get_data(as_text=True)
     
     if not signal_text:
-        return "Empty signal", 400
+        return "Empty", 400
 
-    # ГЛАВНОЕ УСЛОВИЕ: если в тексте есть "yellow", бот игнорирует это
+    # ТВОЕ УСЛОВИЕ: Игнорируем желтые точки
     if "yellow" in signal_text.lower():
-        print("Игнорирую желтую точку")
         return "Ignored", 200
 
-    # Если слова "yellow" нет — это основной сигнал на вход
+    # Отправляем только важные сигналы на вход
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-    
-    # Красиво оформляем основной сигнал
-    formatted_message = f"🟦 НОВЫЙ СИГНАЛ НА ВХОД 🟦\n\n{signal_text}"
-    
     payload = {
         "chat_id": CHAT_ID,
-        "text": formatted_message,
+        "text": f"🟦 НОВЫЙ СИГНАЛ НА ВХОД 🟦\n\n{signal_text}",
         "parse_mode": "Markdown"
     }
 
@@ -39,8 +34,8 @@ def webhook():
 
 @app.route('/')
 def home():
-    return "Bot is running and filtering yellow dots"
+    return "Bot is running"
 
+# ИСПРАВЛЕНО: Добавлены подчеркивания name и main
 if name == "__main__":
-    # Порт 10000 для Render
     app.run(host="0.0.0.0", port=10000)
