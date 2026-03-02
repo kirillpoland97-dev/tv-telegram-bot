@@ -27,6 +27,6 @@ def webhook():
         "text": message
     }
 
-    requests.post(url, json=payload)
+    response = requests.post(url, json=payload)
 
-    return "ok"
+    return str(response.text)
