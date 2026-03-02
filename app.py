@@ -15,7 +15,6 @@ def home():
 def webhook():
     data = request.json
 
-    # Если TradingView не передал JSON
     if not data:
         return "no data"
 
@@ -31,6 +30,3 @@ def webhook():
     requests.post(url, json=payload)
 
     return "ok"
-
-if name == "__main__":
-    app.run()
