@@ -4,35 +4,42 @@ import os
 
 app = Flask(__name__)
 
-TOKEN = os.environ.get("TOKEN")
+# Берем настройки из Render
+TOKEN = os.environ.get("BOT_TOKEN")
 CHAT_ID = os.environ.get("CHAT_ID")
-
-@app.route('/')
-def home():
-    return f"Bot is running. TOKEN={TOKEN}, CHAT_ID={CHAT_ID}"
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    data = request.json
+    # Получаем данные как текст (это надежнее для TradingView)
+    signal_text = request.get_data(as_text=True)
+    
+    if not signal_text:
+        return "Empty signal", 400
 
-    print("Incoming data:", data)
-    print("TOKEN:", TOKEN)
-    print("CHAT_ID:", CHAT_ID)
+    # Твоё условие: игнорируем желтые точки
+    if "yellow" in signal_text.lower():
+        return "Ignored", 200
 
-    if not data:
-        return "no data"
-
-    message = data.get("message", "Signal")
-
+    # Отправляем основной сигнал
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-
     payload = {
         "chat_id": CHAT_ID,
-        "text": message
+        "text": f"🟦 НОВЫЙ СИГНАЛ 🟦\n\n{signal_text}",
+        "parse_mode": "Markdown"
     }
 
-    response = requests.post(url, json=payload)
+    requests.post(url, json=payload)
+    return "ok", 200
 
-    print("Telegram response:", response.text)
+@app.route('/')
+def home():
+    return "Bot is running"
 
-    return response.text
+if name == "__main__":
+    # Сразу шлем тест в группу при запуске
+    try:
+        requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage", 
+                      json={"chat_id": CHAT_ID, "text": "✅ Бот успешно обновился и готов к работе!"})
+    except:
+        pass
+    app.run(host="0.0.0.0", port=10000)
