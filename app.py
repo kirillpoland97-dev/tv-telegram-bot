@@ -9,11 +9,15 @@ CHAT_ID = os.environ.get("CHAT_ID")
 
 @app.route('/')
 def home():
-    return "Bot is running"
+    return f"Bot is running. TOKEN={TOKEN}, CHAT_ID={CHAT_ID}"
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
     data = request.json
+
+    print("Incoming data:", data)
+    print("TOKEN:", TOKEN)
+    print("CHAT_ID:", CHAT_ID)
 
     if not data:
         return "no data"
@@ -29,4 +33,6 @@ def webhook():
 
     response = requests.post(url, json=payload)
 
-    return str(response.text)
+    print("Telegram response:", response.text)
+
+    return response.text
